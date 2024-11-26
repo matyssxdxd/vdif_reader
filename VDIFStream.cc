@@ -41,6 +41,12 @@ void VDIFStream::read_frame(off_t offset) {
 	std::cout << std::endl;
 }
 
+/**
+ * Decode a single 32 bit word into 16 samples
+ * The input uint32_t word to decode
+ * The output vector of 16 floating point samples
+ */
+
 std::vector<float> VDIFStream::decode_word(uint32_t word) {
 	std::vector<float> samples(16);
 
@@ -50,6 +56,12 @@ std::vector<float> VDIFStream::decode_word(uint32_t word) {
 
 	return samples;
 }
+
+/**
+ * Decode multiple 32 bit words into samples
+ * Vector of uint32_t words to decode
+ * Vector of decoded floating point samples
+ */
 
 std::vector<float> VDIFStream::decode(const std::vector<uint32_t> &words) {
 	std::vector<float> decoded_samples;
