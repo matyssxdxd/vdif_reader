@@ -9,5 +9,8 @@ int main(int argc, char *argv[]) {
 	std::cout << "values_per_word: " << vdif_stream.values_per_word() << "\n";
 	std::cout << "payload_nbytes: " << vdif_stream.payload_nbytes() << "\n";
 	std::cout << "samples_per_frame: " << vdif_stream.samples_per_frame() << "\n"; 	
+
+	vdif_stream.read_frame(sizeof(Header));
+
 	return 0;
 }

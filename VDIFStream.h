@@ -3,9 +3,8 @@
 
 #include <cstdint>
 #include <fstream>
-
-#define OPTIMAL_2BIT_HIGH 3.3359
-#define TWO_BIT_1_SIGMA = 2.174564
+#include <array>
+#include <vector>
 
 struct Header {
 	uint32_t sec_from_epoch : 30;
@@ -33,10 +32,10 @@ struct Header {
 	uint32_t user_data_4;
 
 	Header() : sec_from_epoch(0), legacy_mode(0), invalid(0),
-					dataframe_in_second(0), ref_epoch(0), unassigned(0),
-					dataframe_length(0), log2_nchan(0), version(0), station_id(0),
-					thread_id(0), bits_per_sample(0), data_type(0), user_data_1(0),
-					edv(0), user_data_2(0), user_data_3(0), user_data_4(0) {};
+			   dataframe_in_second(0), ref_epoch(0), unassigned(0),
+			   dataframe_length(0), log2_nchan(0), version(0), station_id(0),
+			   thread_id(0), bits_per_sample(0), data_type(0), user_data_1(0),
+			   edv(0), user_data_2(0), user_data_3(0), user_data_4(0) {};
 };
 
 class VDIFStream {
@@ -47,10 +46,23 @@ private:
 	uint32_t number_of_frames;
 
 	// 2 bit decoding stuff, should probably move to another file
-	float decoder_level[4] = { -OPTIMAL_2BIT_HIGH, -1.0, 1.0, OPTIMAL_2BIT_HIGH };
+	// Optimal high value for 2-bit reconstruction, taken from baseband vdif source code
+	static constexpr float OPTIMAL_2BIT_HIGH = 3.316505f;
+
+	// Look-up table for 2-bit decoding
+	static constexpr std::array<float, 4> DECODER_LEVEL = {
+		-OPTIMAL_2BIT_HIGH,
+		-1.0f,
+		1.0f,
+		OPTIMAL_2BIT_HIGH
+	};
+
+	static std::vector<float> decode_word(uint32_t word);
+	static std::vector<float> decode(const std::vector<uint32_t> &words);
 public:
 	VDIFStream(const std::string &input_file);
 	~VDIFStream();
+	void read_frame(off_t offset);
 	uint32_t bits_per_sample();
 	uint32_t number_of_channels();
 	uint32_t values_per_word();

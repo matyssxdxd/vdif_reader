@@ -2,7 +2,8 @@
 
 #include <iostream>
 #include <stdexcept>
-
+#include <vector>
+#include <iomanip>
 
 VDIFStream::VDIFStream(const std::string &input_file)
 	: file(input_file, std::ios::binary), number_of_headers(0), number_of_frames(0) {
@@ -18,6 +19,52 @@ VDIFStream::VDIFStream(const std::string &input_file)
 
 VDIFStream::~VDIFStream() {
 	file.close();
+}
+
+void VDIFStream::read_frame(off_t offset) {
+	std::vector<uint32_t> buffer(payload_nbytes() / sizeof(uint32_t));
+
+	file.seekg(offset, std::ios::beg);
+	file.read(reinterpret_cast<char *>(buffer.data()), payload_nbytes());
+
+	std::vector<float> decoded_samples = decode(buffer);
+
+	std::cout << std::fixed << std::setprecision(6);
+
+	for (size_t i = 0; i < decoded_samples.size(); ++i) {
+		std::cout << decoded_samples[i] << " ";
+		if ((i + 1) % 16 == 0 && i < decoded_samples.size() - 1) {
+			std::cout << std::endl;
+		}
+	}
+
+	std::cout << std::endl;
+}
+
+std::vector<float> VDIFStream::decode_word(uint32_t word) {
+	std::vector<float> samples(16);
+
+	for (int i = 0; i < 16; i++) {
+		samples[i] = DECODER_LEVEL[(word >> (i * 2)) & 0b11];
+	}
+
+	return samples;
+}
+
+std::vector<float> VDIFStream::decode(const std::vector<uint32_t> &words) {
+	std::vector<float> decoded_samples;
+	decoded_samples.reserve(words.size() * 16);
+
+	for (uint32_t word : words) {
+		auto word_samples = decode_word(word);
+		decoded_samples.insert(
+				decoded_samples.end(),
+				word_samples.begin(),
+				word_samples.end()
+		);
+	}
+
+	return decoded_samples;
 }
 
 uint32_t VDIFStream::bits_per_sample() {
