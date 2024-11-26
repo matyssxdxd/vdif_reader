@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <fstream>
 
+#define OPTIMAL_2BIT_HIGH 3.3359
+#define TWO_BIT_1_SIGMA = 2.174564
+
 struct Header {
 	uint32_t sec_from_epoch : 30;
 	uint32_t legacy_mode : 1;
@@ -42,6 +45,9 @@ private:
 	std::ifstream file;
 	uint32_t number_of_headers;
 	uint32_t number_of_frames;
+
+	// 2 bit decoding stuff, should probably move to another file
+	float decoder_level[4] = { -OPTIMAL_2BIT_HIGH, -1.0, 1.0, OPTIMAL_2BIT_HIGH };
 public:
 	VDIFStream(const std::string &input_file);
 	~VDIFStream();
